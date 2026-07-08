@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Квиз ГЕ 🍽️</title>
+<style>
+  /* Шрифт в стиле Yandex Sans / Geo */
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap');
+
+  :root{
+    --blue:#A3E8FE;
+    --orange:#F9A870;
+    --pink:#F6C3CF;
+    --beige:#E5C5B4;
+    --ink:#1b1b1f;
+    --muted:#7c7c86;
+    --green:#3ab87a;
+    --red:#ec5b62;
+    --card:#ffffff;
+    --bg:#fbf9f7;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Manrope',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);
+    min-height:100vh;
+    letter-spacing:-.01em;
+  }
+  .app{max-width:520px;margin:0 auto;padding:20px 18px 40px;min-height:100vh;display:flex;flex-direction:column}
+
+  /* ПРОГРЕСС */
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .logo{font-weight:800;font-size:20px}
+  .logo span{background:linear-gradient(90deg,var(--blue),var(--orange),var(--pink));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .prog{flex:1;height:8px;background:#eceae7;border-radius:99px;overflow:hidden}
+  .prog i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--blue),var(--pink));transition:width .4s ease}
+  .count{font-weight:700;font-size:14px;color:var(--muted);white-space:nowrap}
+
+  /* ЭКРАНЫ */
+  .screen{flex:1;display:flex;flex-direction:column;animation:in .35s ease}
+  @keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  /* СТАРТ */
+  .hero{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:18px}
+  .emoji{font-size:64px}
+  .hero h1{font-size:34px;font-weight:800;margin:0;line-height:1.1}
+  .hero p{font-size:17px;color:var(--muted);margin:0}
+  .pills{display:flex;gap:8px;justify-content:center;margin:6px 0}
+  .pills span{width:26px;height:26px;border-radius:50%}
+  .p1{background:var(--blue)}.p2{background:var(--orange)}.p3{background:var(--pink)}.p4{background:var(--beige)}
+
+  /* ВОПРОС */
+  .qnum{font-weight:700;font-size:14px;color:var(--muted);margin-bottom:6px}
+  .qtext{font-size:24px;font-weight:800;line-height:1.22;margin:0 0 10px}
+  .hint{font-size:14px;font-weight:700;color:var(--orange);margin:0 0 16px}
+
+  .answers{display:flex;flex-direction:column;gap:12px}
+  .ans{
+    display:flex;align-items:center;gap:14px;
+    border:none;border-radius:20px;padding:16px 18px;
+    font-family:inherit;font-size:17px;font-weight:700;text-align:left;
+    cursor:pointer;color:var(--ink);width:100%;
+    transition:transform .12s ease, box-shadow .2s ease, opacity .2s ease;
+    box-shadow:0 3px 0 rgba(0,0,0,.06);
+  }
+  .ans:active{transform:scale(.98)}
+  .ans .lt{
+    flex:none;width:34px;height:34px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:16px;background:rgba(255,255,255,.55)
+  }
+  .ans.c0{background:var(--blue)}
+  .ans.c1{background:var(--orange)}
+  .ans.c2{background:var(--pink)}
+  .ans.c3{background:var(--beige)}
+  .ans.c4{background:#d9e8c8}
+  .ans.c5{background:#d5cdf2}
+
+  .ans.selected{box-shadow:0 0 0 4px rgba(0,0,0,.14)}
+  .ans.correct{outline:3px solid var(--green);box-shadow:0 0 0 6px rgba(58,184,122,.18)}
+  .ans.wrong{outline:3px solid var(--red);box-shadow:0 0 0 6px rgba(236,91,98,.18)}
+  .ans.dim{opacity:.4}
+  .ans[disabled]{cursor:default}
+  .mark{margin-left:auto;font-size:20px}
+
+  /* Открытое поле (Вадим) */
+  .openbox{margin-top:14px;animation:in .3s ease}
+  .openbox input{
+    width:100%;border:2px solid #e7e4e0;border-radius:16px;padding:14px 16px;
+    font-family:inherit;font-size:16px;font-weight:600;background:#fff;
+  }
+  .openbox input:focus{outline:none;border-color:var(--orange)}
+
+  /* Фидбек */
+  .feedback{
+    margin-top:18px;border-radius:18px;padding:16px 18px;font-weight:700;font-size:16px;
+    display:none;align-items:center;gap:10px;animation:in .3s ease
+  }
+  .feedback.ok{display:flex;background:rgba(58,184,122,.14);color:#268a58}
+  .feedback.no{display:flex;background:rgba(236,91,98,.14);color:#c53f46}
+
+  .next{
+    margin-top:auto;padding-top:22px
+  }
+  .btn{
+    width:100%;border:none;border-radius:20px;padding:18px;
+    font-family:inherit;font-weight:800;font-size:18px;color:var(--ink);cursor:pointer;
+    background:linear-gradient(90deg,var(--blue),var(--pink));
+    box-shadow:0 4px 0 rgba(0,0,0,.08);transition:transform .12s ease
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:#efedea;color:var(--muted);box-shadow:none}
+  .btn[disabled]{opacity:.4;cursor:default}
+
+  /* РЕЗУЛЬТАТ */
+  .result{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:14px}
+  .score{
+    font-size:80px;font-weight:800;line-height:1;
+    background:linear-gradient(90deg,var(--orange),var(--pink));
+    -webkit-background-clip:text;background-clip:text;color:transparent
+  }
+  .score small{font-size:28px;color:var(--muted);-webkit-text-fill-color:var(--muted)}
+  .rtitle{font-size:26px;font-weight:800;margin:0}
+  .rsub{font-size:17px;color:var(--muted);margin:0}
+  .vadim{
+    margin-top:16px;background:#fff;border:2px dashed var(--beige);border-radius:18px;
+    padding:14px 16px;text-align:left;font-size:15px
+  }
+  .vadim b{display:block;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="logo">Квиз <span>ГЕ</span></div>
+    <div class="prog"><i id="bar"></i></div>
+    <div class="count" id="counter">0 / 9</div>
+  </div>
+
+  <!-- СТАРТ -->
+  <section class="screen" id="startScreen">
+    <div class="hero">
+      <div class="emoji">🍽️</div>
+      <h1>Насколько хорошо<br>ты знаешь кухню ГЕ?</h1>
+      <p>9 вопросов о дегустациях, хитах и любимых блюдах. Отвечай — сразу узнаешь, прав ли ты!</p>
+      <div class="pills"><span class="p1"></span><span class="p2"></span><span class="p3"></span><span class="p4"></span></div>
+    </div>
+    <div class="next">
+      <button class="btn" onclick="startQuiz()">Поехали 🚀</button>
+    </div>
+  </section>
+
+  <!-- ВОПРОС -->
+  <section class="screen" id="quizScreen" style="display:none">
+    <div class="qnum" id="qnum"></div>
+    <h2 class="qtext" id="qtext"></h2>
+    <p class="hint" id="hint" style="display:none"></p>
+    <div class="answers" id="answers"></div>
+    <div class="openbox" id="openbox" style="display:none">
+      <input id="openInput" type="text" placeholder="Впишите ответ Вадима сюда 😏" />
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="next">
+      <button class="btn" id="nextBtn" disabled onclick="nextQuestion()">Дальше →</button>
+    </div>
+  </section>
+
+  <!-- РЕЗУЛЬТАТ -->
+  <section class="screen" id="resultScreen" style="display:none">
+    <div class="result">
+      <div class="emoji">🎉</div>
+      <div class="score" id="scoreNum">0<small>/9</small></div>
+      <h2 class="rtitle" id="resTitle"></h2>
+      <p class="rsub" id="resSub"></p>
+      <div class="vadim" id="vadimBox" style="display:none">
+        <b>🗣️ Ответ Вадима, который ты вписал:</b>
+        <span id="vadimText"></span>
+      </div>
+    </div>
+    <div class="next">
+      <button class="btn ghost" onclick="location.reload()">Пройти заново ↻</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  { q:"Сколько блюд в среднем съедает 1 катмен за 1 дегустацию?",
+    a:["15","8","20","10"], correct:[2] },
+
+  { q:"Какой самый высокий лайк-шер у блюда?",
+    a:["100%","97,33%","89,04%","99,87%"], correct:[1] },
+
+  { q:"Самое неожиданное блюдо, ставшее хитом?",
+    a:["Клаб-сэндвич с индейкой и соусом песто","Том-ям сырный","Круассан с омлетом и пастрами из индейки","Свекольник с кефиром Прибалтийский"], correct:[0] },
+
+  { q:"Сколько новинок запустили за H1 2026?",
+    a:["189","355","287","412"], correct:[1] },
+
+  { q:"Сколько у нас категорий стратегических партнёров?",
+    a:["10","16","11","8"], correct:[2] },
+
+  // Вопрос 6 — ОБНОВЛЁН
+  { q:"Сколько процентов блюд «отметают» на дегустации?",
+    a:["50%","60%","70%","80%"], correct:[3] },
+
+  // Вопрос 7 — с открытым вариантом «Е — Ответ Вадима»
+  { q:"Какое любимое блюдо Вадима?",
+    a:["Хабюрза","Том-ям от нашего завода","Полкило оливье с курицей","Мы не знаем 🤷","Ответ Вадима"],
+    correct:[3,4], openIndex:4 },
+
+  // Вопрос 8 — мультивыбор, нужно выбрать 2 ответа
+  { q:"Дефицит чего испытывает рынок ГЕ?",
+    a:["Бензин","Курица","Идеи","Огурцы"], correct:[0,1], multi:true },
+
+  { q:"Сколько людей работает в ГЕ больше 1 года?",
+    a:["3","2","1","0"], correct:[2] },
+];
+
+let idx = 0;
+let score = 0;
+let answered = false;
+let vadimAnswer = "";
+let multiSelected = []; // для вопроса с мультивыбором
+
+const bar = document.getElementById('bar');
+const counter = document.getElementById('counter');
+
+function startQuiz(){
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('quizScreen').style.display='flex';
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered = false;
+  multiSelected = [];
+  const item = QUESTIONS[idx];
+  document.getElementById('qnum').textContent = `Вопрос ${idx+1} из ${QUESTIONS.length}`;
+  document.getElementById('qtext').textContent = item.q;
+  counter.textContent = `${idx} / ${QUESTIONS.length}`;
+  bar.style.width = `${(idx/QUESTIONS.length)*100}%`;
+
+  // подсказка для мультивыбора
+  const hint = document.getElementById('hint');
+  if(item.multi){ hint.style.display='block'; hint.textContent='✔ Выберите 2 ответа'; }
+  else hint.style.display='none';
+
+  const letters = ['А','Б','В','Г','Д','Е'];
+  const wrap = document.getElementById('answers');
+  wrap.innerHTML = '';
+
+  item.a.forEach((text,i)=>{
+    const b = document.createElement('button');
+    b.className = `ans c${i}`;
+    b.innerHTML = `<span class="lt">${letters[i]}</span><span>${text}</span><span class="mark"></span>`;
+    if(item.multi) b.onclick = ()=>toggleMulti(i,b);
+    else b.onclick = ()=>selectAnswer(i,b);
+    wrap.appendChild(b);
+  });
+
+  // открытое поле для Вадима — скрыто до клика на «Е»
+  const openbox = document.getElementById('openbox');
+  const openInput = document.getElementById('openInput');
+  openbox.style.display='none';
+  openInput.value='';
+  openInput.removeAttribute('readonly');
+
+  const fb = document.getElementById('feedback');
+  fb.className='feedback'; fb.textContent='';
+
+  const nb = document.getElementById('nextBtn');
+  nb.disabled = true;
+  nb.textContent = (idx === QUESTIONS.length-1) ? 'Показать результат 🏁' : 'Дальше →';
+}
+
+/* ===== Обычный одиночный выбор ===== */
+function selectAnswer(i, btn){
+  if(answered) return;
+  const item = QUESTIONS[idx];
+
+  // если это вариант «Ответ Вадима» — показываем поле и НЕ фиксируем ответ сразу
+  if(item.openIndex === i){
+    document.querySelectorAll('.ans').forEach(el=>el.classList.remove('selected'));
+    btn.classList.add('selected');
+    const openbox = document.getElementById('openbox');
+    openbox.style.display='block';
+    document.getElementById('openInput').focus();
+    pendingOpen = i;
+    document.getElementById('nextBtn').disabled = false;
+    return;
+  }
+
+  finalizeSingle(i);
+}
+
+let pendingOpen = null;
+
+/* Фиксация одиночного ответа с показом верного/неверного */
+function finalizeSingle(i){
+  answered = true;
+  const item = QUESTIONS[idx];
+  const isCorrect = item.correct.includes(i);
+
+  document.querySelectorAll('.ans').forEach((el,j)=>{
+    el.setAttribute('disabled','true');
+    el.classList.remove('selected');
+    if(item.correct.includes(j)){
+      el.classList.add('correct');
+      el.querySelector('.mark').textContent='✅';
+    } else if(j===i){
+      el.classList.add('wrong');
+      el.querySelector('.mark').textContent='❌';
+    } else {
+      el.classList.add('dim');
+    }
+  });
+
+  const fb = document.getElementById('feedback');
+  if(isCorrect){ score++; fb.className='feedback ok'; fb.textContent='✅ Верно! Так держать'; }
+  else { fb.className='feedback no'; fb.textContent='❌ Мимо! Правильный ответ подсвечен'; }
+
+  document.getElementById('nextBtn').disabled = false;
+}
+
+/* ===== Мультивыбор (вопрос 8) ===== */
+function toggleMulti(i, btn){
+  if(answered) return;
+  const pos = multiSelected.indexOf(i);
+  if(pos>-1){ multiSelected.splice(pos,1); btn.classList.remove('selected'); }
+  else {
+    if(multiSelected.length>=2) return; // не больше 2
+    multiSelected.push(i); btn.classList.add('selected');
+  }
+  document.getElementById('nextBtn').disabled = (multiSelected.length!==2);
+}
+
+function finalizeMulti(){
+  answered = true;
+  const item = QUESTIONS[idx];
+  const correctSet = item.correct.slice().sort().join(',');
+  const chosenSet = multiSelected.slice().sort().join(',');
+  const isCorrect = correctSet === chosenSet;
+
+  document.querySelectorAll('.ans').forEach((el,j)=>{
+    el.setAttribute('disabled','true');
+    el.classList.remove('selected');
+    if(item.correct.includes(j)){
+      el.classList.add('correct');
+      el.querySelector('.mark').textContent='✅';
+    } else if(multiSelected.includes(j)){
+      el.classList.add('wrong');
+      el.querySelector('.mark').textContent='❌';
+    } else {
+      el.classList.add('dim');
+    }
+  });
+
+  const fb = document.getElementById('feedback');
+  if(isCorrect){ score++; fb.className='feedback ok'; fb.textContent='✅ Верно! Оба ответа правильные'; }
+  else { fb.className='feedback no'; fb.textContent='❌ Не совсем! Верные ответы подсвечены'; }
+}
+
+function nextQuestion(){
+  const item = QUESTIONS[idx];
+
+  if(!answered){
+    if(item.multi){ finalizeMulti(); }
+    else if(pendingOpen !== null){
+      const v = document.getElementById('openInput').value.trim();
+      if(v) vadimAnswer = v;
+      finalizeSingle(pendingOpen);
+    }
+    pendingOpen = null;
+    return;
+  }
+
+  pendingOpen = null;
+  idx++;
+  if(idx < QUESTIONS.length){
+    document.getElementById('quizScreen').style.display='none';
+    void document.getElementById('quizScreen').offsetWidth;
+    document.getElementById('quizScreen').style.display='flex';
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult(){
+  document.getElementById('quizScreen').style.display='none';
+  document.getElementById('resultScreen').style.display='flex';
+  bar.style.width='100%';
+  counter.textContent = `${QUESTIONS.length} / ${QUESTIONS.length}`;
+
+  document.getElementById('scoreNum').innerHTML = `${score}<small>/${QUESTIONS.length}</small>`;
+
+  let title, sub;
+  if(score === QUESTIONS.length){ title='Ты гуру кухни ГЕ! 👑'; sub='Идеальный результат — снимаем шляпу!'; }
+  else if(score >= 7){ title='Почти шеф-повар! 👨‍🍳'; sub='Отличный результат, ты в теме.'; }
+  else if(score >= 4){ title='Неплохо приготовлено 🍳'; sub='Есть куда расти — загляни к нам на дегустацию!'; }
+  else { title='Нужна добавка 🥲'; sub='Не расстраивайся — теперь ты знаешь больше!'; }
+
+  document.getElementById('resTitle').textContent = title;
+  document.getElementById('resSub').textContent = sub;
+
+  if(vadimAnswer){
+    document.getElementById('vadimBox').style.display='block';
+    document.getElementById('vadimText').textContent = '«'+vadimAnswer+'»';
+  }
+}
+</script>
+</body>
+</html>
